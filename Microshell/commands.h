@@ -11,17 +11,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <pwd.h>
+#include <grp.h>
+#include <time.h>
 #include <dirent.h>
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
 #include <stdbool.h>
 
-char* getWD(void);
-void pwd(void);
+#define NOOPT               0
+#define ALL_FILES           1
+#define LONG_LIST_FORMAT    2
 
+
+char* getWD(void);
+
+void pwd(void);
 bool cd(const char *destination);
-void help(void);                    // help
+void ls(const char *path, int option);
+void help(void);
 void myExit(void);                  // exit
 
 
