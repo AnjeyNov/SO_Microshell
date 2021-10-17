@@ -27,6 +27,7 @@
 
 
 char* getWD(void);
+char* getHD(void);
 
 void pwd(void);
 bool cd(const char *destination);

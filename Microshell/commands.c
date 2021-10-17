@@ -35,6 +35,13 @@ char* getWD(void) {
     return path;
 }
 
+char* getHD(void) {
+    struct passwd *pw = getpwuid(getuid());
+    char *homedir =  (char*)malloc((strlen(pw->pw_dir) + 1) * sizeof(char));
+    strcpy(homedir, pw->pw_dir);
+    return homedir;
+}
+
 // the function prints the name of the working directory
 void pwd(void) {
     char *path = getWD();
