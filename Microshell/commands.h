@@ -26,8 +26,15 @@
 #define LONG_LIST_FORMAT    2
 
 
+extern bool isHomeDir;
+extern char *homeDir;
+extern char *currentDir;
+
+
 char* getWD(void);
 char* getHD(void);
+
+void initialization(void);
 
 void pwd(void);
 bool cd(const char *destination);

@@ -7,6 +7,10 @@
 
 #include "commands.h"
 
+bool isHomeDir = false;
+char *homeDir = NULL;
+char *currentDir = NULL;
+
 // string comparator for qsort
 int comp1 (const void * a, const void * b)
 {
@@ -16,6 +20,7 @@ int comp1 (const void * a, const void * b)
 // the function returns a string with the name of the working directory
 char* getWD(void) {
     char *path = NULL;
+    //char *result = NULL;
     int path_length = 32;
     do {
         path = (char*)malloc(path_length * sizeof(char));
@@ -25,12 +30,15 @@ char* getWD(void) {
             switch (errno) {
                 case ERANGE: {
                     path_length *= 2;
+                    free(path);
                     break;
                 }
-                default: return NULL;
+                default: {
+                    free(path);
+                    return NULL;
+                }
             }
         }
-        free(path);
     } while(errno != 0);
     return path;
 }
@@ -42,25 +50,45 @@ char* getHD(void) {
     return homedir;
 }
 
+void initialization(void) {
+    currentDir = getWD();
+    homeDir = getHD();
+    isHomeDir = !strcmp(currentDir, homeDir);
+}
+
+
 // the function prints the name of the working directory
 void pwd(void) {
-    char *path = getWD();
-    if (path == NULL) {
-        printf("pwd: something wrong\n");
-    } else {
-        printf("%s\n", path);
+    if (currentDir == NULL) {
+        currentDir = getWD();
+        if (currentDir == NULL) {
+            printf("pwd: something wrong\n");
+            return;
+        }
     }
-    free(path);
+    printf("%s\n", currentDir);
 }
 
 // the function changes the working directory to the one specified in "destination" and returns "true" on success
 bool cd(const char *destination) {
-    errno = 0;;
-    if (chdir(destination) != 0) {
+    
+    char *newDir = NULL;
+    if(*destination == '~') {
+        size_t newLength = strlen(homeDir) + strlen(destination);
+        newDir = (char*)malloc(newLength*sizeof(char));
+        strcpy(newDir, homeDir);
+        if(destination + 1 != NULL)
+            strcat(newDir, destination+1);
+    } else {
+        newDir = (char*)destination;
+    }
+    
+    errno = 0;
+    if (chdir(newDir) != 0) {
         switch (errno) {
             case ENOTDIR:
             case ENOENT:
-                printf("cd: no such file or directory: %s\n", destination);
+                printf("cd: no such file or directory: %s\n", newDir);
                 break;
             case EACCES:
                 printf("cd: you do not have permission\n");
@@ -71,6 +99,10 @@ bool cd(const char *destination) {
         }
         return false;
     }
+    if(currentDir!=NULL)
+        free(currentDir);
+    currentDir = (char*)malloc((strlen(newDir)+1)*sizeof(char));
+    strcpy(currentDir, newDir);
     return true;
 }
 
