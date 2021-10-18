@@ -8,8 +8,11 @@
 #include "commands.h"
 
 bool isHomeDir = false;
+bool isHomeSubdir = false;
 char *homeDir = NULL;
 char *currentDir = NULL;
+char *username = NULL;
+char *hostname = NULL;
 
 // string comparator for qsort
 int comp1 (const void * a, const void * b)
@@ -20,7 +23,6 @@ int comp1 (const void * a, const void * b)
 // the function returns a string with the name of the working directory
 char* getWD(void) {
     char *path = NULL;
-    //char *result = NULL;
     int path_length = 32;
     do {
         path = (char*)malloc(path_length * sizeof(char));
@@ -45,17 +47,52 @@ char* getWD(void) {
 
 char* getHD(void) {
     struct passwd *pw = getpwuid(getuid());
-    char *homedir =  (char*)malloc((strlen(pw->pw_dir) + 1) * sizeof(char));
-    strcpy(homedir, pw->pw_dir);
-    return homedir;
+    char *_homedir =  (char*)malloc((strlen(pw->pw_dir) + 1) * sizeof(char));
+    strcpy(_homedir, pw->pw_dir);
+    return _homedir;
 }
+
+char* getUsername(void) {
+    struct passwd *pw = getpwuid(getuid());
+    char *_username =  (char*)malloc((strlen(pw->pw_name) + 1) * sizeof(char));
+    strcpy(_username, pw->pw_name);
+    return _username;
+}
+
+char* getHostname(void) {
+    char *result = NULL;
+    char _hostname[256];
+    if(gethostname(_hostname, 256) == 0) {
+        result = (char*)malloc((strlen(_hostname) + 1) * sizeof(char));
+        strcpy(result, _hostname);
+    }
+    return result;
+}
+
 
 void initialization(void) {
     currentDir = getWD();
     homeDir = getHD();
     isHomeDir = !strcmp(currentDir, homeDir);
+    username = getUsername();
+    hostname = getHostname();
+    isHomeDir = !strcmp(currentDir, homeDir);
+    isHomeSubdir = !isHomeDir && (strstr(currentDir, homeDir) != NULL);
 }
 
+//
+void greetingStamp(void) {
+    if(username != NULL)
+        printf("%s@", username);
+    if(hostname != NULL)
+        printf("%s: ", hostname);
+    if(isHomeSubdir || isHomeDir) {
+        printf("~%s $ ", currentDir + strlen(homeDir));
+        return;
+    }
+    printf("%s $ ", currentDir);
+    return;
+}
 
 // the function prints the name of the working directory
 void pwd(void) {
@@ -101,8 +138,9 @@ bool cd(const char *destination) {
     }
     if(currentDir!=NULL)
         free(currentDir);
-    currentDir = (char*)malloc((strlen(newDir)+1)*sizeof(char));
-    strcpy(currentDir, newDir);
+    currentDir = getWD();
+    isHomeDir = !strcmp(currentDir, homeDir);
+    isHomeSubdir = !isHomeDir && (strstr(currentDir, homeDir) != NULL);
     return true;
 }
 
@@ -259,6 +297,10 @@ void help(void) {
 }
 
 void myExit(void) {
-    // может надо будет остановить таски
-    
+    if(currentDir != NULL)
+        free(currentDir);
+    if(homeDir != NULL)
+        free(homeDir);
+    if(username != NULL)
+        free(username);
 }

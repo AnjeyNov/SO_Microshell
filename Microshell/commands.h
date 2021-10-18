@@ -27,14 +27,17 @@
 
 
 extern bool isHomeDir;
+extern bool isHomeSubdir;
 extern char *homeDir;
 extern char *currentDir;
-
+extern char *username;
+extern char *hostname;
 
 char* getWD(void);
 char* getHD(void);
 
 void initialization(void);
+void greetingStamp(void);
 
 void pwd(void);
 bool cd(const char *destination);
