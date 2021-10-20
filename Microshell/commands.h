@@ -33,17 +33,14 @@ extern char *currentDir;
 extern char *username;
 extern char *hostname;
 
-char* getWD(void);
-char* getHD(void);
-
 void initialization(void);
 void greetingStamp(void);
 
-void pwd(void);
-bool cd(const char *destination);
-void ls(const char *path, int option);
+void pwd(const char *optinos);
+void cd(const char *optinos);
+void ls(const char *options);
 void help(void);
-void myExit(void);                  // exit
+void myExit(void);                  
 
 
 #endif /* commands_h */

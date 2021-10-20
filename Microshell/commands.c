@@ -15,8 +15,7 @@ char *username = NULL;
 char *hostname = NULL;
 
 // string comparator for qsort
-int comp1 (const void * a, const void * b)
-{
+int comp1 (const void * a, const void * b) {
   return strcmp(*(char**)a,*(char**)b);
 }
 
@@ -69,7 +68,6 @@ char* getHostname(void) {
     return result;
 }
 
-
 void initialization(void) {
     currentDir = getWD();
     homeDir = getHD();
@@ -95,7 +93,7 @@ void greetingStamp(void) {
 }
 
 // the function prints the name of the working directory
-void pwd(void) {
+void _pwd(void) {
     if (currentDir == NULL) {
         currentDir = getWD();
         if (currentDir == NULL) {
@@ -107,7 +105,7 @@ void pwd(void) {
 }
 
 // the function changes the working directory to the one specified in "destination" and returns "true" on success
-bool cd(const char *destination) {
+bool _cd(const char *destination) {
     
     char *newDir = NULL;
     if(*destination == '~') {
@@ -125,7 +123,7 @@ bool cd(const char *destination) {
         switch (errno) {
             case ENOTDIR:
             case ENOENT:
-                printf("cd: no such file or directory: %s\n", newDir);
+                printf("cd: no such file or directory \"%s\"\n", newDir);
                 break;
             case EACCES:
                 printf("cd: you do not have permission\n");
@@ -143,7 +141,6 @@ bool cd(const char *destination) {
     isHomeSubdir = !isHomeDir && (strstr(currentDir, homeDir) != NULL);
     return true;
 }
-
 
 // function for printing file description
 void printDirentDiscription(const char* path, const char *file) {
@@ -237,7 +234,7 @@ void printDirentDiscription(const char* path, const char *file) {
 }
 
 // list directory contents
-void ls(const char *path, int option) {
+void _ls(const char *path, int option) {
     
     errno = 0;
     DIR *dir = opendir(path);
@@ -245,16 +242,16 @@ void ls(const char *path, int option) {
         switch (errno) {
             case EACCES:
                 printf("ls: access is denied\n");
-                break;
+                return;
             case ENOTDIR:
                 printf("ls: %s - is not a directory\n", path);
-                break;
+                return;;
             case ENOENT:
                 printf("ls: directory does not exist\n");
-                break;
+                return;;
             default:
                 printf("ls: something wrong");
-                break;
+                return;;
         }
     }
     
@@ -288,6 +285,59 @@ void ls(const char *path, int option) {
     closedir(dir);
 }
 
+void cd(const char *optinos) {
+    if(optinos == NULL)
+        return;
+    _cd(optinos);
+}
+
+void ls(const char *options) {
+    if(options == NULL || *options == '\n')
+        return ls(currentDir);
+    int type = 0;
+    char *substr = NULL;
+    char *_tmp = strdup(options);
+    substr = strtok(_tmp, " ");
+    do {
+        if(!strcmp(substr, "-a") || !strcmp(substr, "-a\n")) {
+            type |= ALL_FILES;
+            substr = strtok(NULL, " ");
+            continue;
+        }
+        if(!strcmp(substr, "-l") || !strcmp(substr, "-l\n")) {
+            type |= LONG_LIST_FORMAT;
+            substr = strtok(NULL, " ");
+            continue;
+        }
+        if(!strcmp(substr, "-al") || !strcmp(substr, "-al\n") || !strcmp(substr, "-la") || !strcmp(substr, "-la\n")) {
+            type |= ALL_FILES | LONG_LIST_FORMAT;
+            substr = strtok(NULL, " ");
+            continue;
+        }
+        if(*substr == '-') {
+            printf("ls: bad argument \"%s\"\n", substr);
+            free(_tmp);
+            return;
+        } else {
+            if (*substr == '~') {
+                char *destination = NULL;
+                destination = (char*)malloc((strlen(homeDir) + strlen(substr)) * sizeof(char));
+                strcpy(destination, homeDir);
+                strcat(destination, substr + 1);
+                _ls(destination, type);
+                free(destination);
+            } else {
+                _ls(substr, type);
+            }
+            free(_tmp);
+            return;
+        }
+    } while (substr != NULL);
+    free(_tmp);
+    _ls(currentDir, type);
+    return;
+}
+
 void help(void) {
     printf("Author: Andrei Novitski\n\n");
     printf("help - Display information about builtin commands.\n");
@@ -303,4 +353,6 @@ void myExit(void) {
         free(homeDir);
     if(username != NULL)
         free(username);
+    if(hostname != NULL)
+        free(hostname);
 }
