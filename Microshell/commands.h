@@ -36,7 +36,7 @@ extern char *hostname;
 void initialization(void);
 void greetingStamp(void);
 
-void pwd(const char *optinos);
+void pwd(void);
 void cd(const char *optinos);
 void ls(const char *options);
 void help(void);

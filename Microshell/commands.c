@@ -93,7 +93,7 @@ void greetingStamp(void) {
 }
 
 // the function prints the name of the working directory
-void _pwd(void) {
+void pwd(void) {
     if (currentDir == NULL) {
         currentDir = getWD();
         if (currentDir == NULL) {
