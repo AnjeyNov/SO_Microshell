@@ -36,9 +36,10 @@ extern char *hostname;
 void initialization(void);
 void greetingStamp(void);
 
-void pwd(void);
-void cd(const char *optinos);
+void pwd(const char *options);
+void cd(const char *options);
 void ls(const char *options);
+void otherCommand(const char *command, const char *options);
 void help(void);
 void myExit(void);                  
 

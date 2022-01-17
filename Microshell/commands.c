@@ -71,7 +71,6 @@ char* getHostname(void) {
 void initialization(void) {
     currentDir = getWD();
     homeDir = getHD();
-    isHomeDir = !strcmp(currentDir, homeDir);
     username = getUsername();
     hostname = getHostname();
     isHomeDir = !strcmp(currentDir, homeDir);
@@ -93,7 +92,7 @@ void greetingStamp(void) {
 }
 
 // the function prints the name of the working directory
-void pwd(void) {
+void _pwd(void) {
     if (currentDir == NULL) {
         currentDir = getWD();
         if (currentDir == NULL) {
@@ -108,7 +107,7 @@ void pwd(void) {
 bool _cd(const char *destination) {
     
     char *newDir = NULL;
-    if(*destination == '~') {
+        if(*destination == '~') {
         size_t newLength = strlen(homeDir) + strlen(destination);
         newDir = (char*)malloc(newLength*sizeof(char));
         strcpy(newDir, homeDir);
@@ -285,10 +284,14 @@ void _ls(const char *path, int option) {
     closedir(dir);
 }
 
-void cd(const char *optinos) {
-    if(optinos == NULL)
+void cd(const char *options) {
+    if(options == NULL)
         return;
-    _cd(optinos);
+    _cd(options);
+}
+
+void pwd(const char *options) {
+    _pwd();
 }
 
 void ls(const char *options) {
@@ -340,13 +343,15 @@ void ls(const char *options) {
 
 void help(void) {
     printf("Author: Andrei Novitski\n\n");
-    printf("help - Display information about builtin commands.\n");
-    printf("pwd - print the name of the current working directory.\n");
-    printf("cd - change the working directory.\n");
-    printf("ls - list directory contents.\n");
+    printf("help    display information about builtin commands.\n");
+    printf("pwd     print the name of the current working directory.\n");
+    printf("cd      change the working directory.\n");
+    printf("ls      list directory contents.\n");
+    printf("exit    exit the shell.\n");
 }
 
 void myExit(void) {
+    printf("Freeing used memory...\n");
     if(currentDir != NULL)
         free(currentDir);
     if(homeDir != NULL)
@@ -355,4 +360,62 @@ void myExit(void) {
         free(username);
     if(hostname != NULL)
         free(hostname);
+    printf("End of the program...\n");
+    exit(0);
+}
+// "/usc/fjgkgf/cjdkjgd/cjkdh/home/fileexe.ljfeljf"
+void otherCommand(const char *command, const char *options) {
+    char *filePath = NULL;
+    char **_argv = NULL;
+    filePath = (char*)malloc((strlen(currentDir) + strlen(command) + 2) * sizeof(char));
+    strcpy(filePath, currentDir);
+    strcat(filePath, "/");
+    strcat(filePath, command);
+    errno = 0;
+    if(access(filePath, X_OK)) {
+        switch (errno) {
+            case ENOENT:
+                printf("Microshell: %s: command not found\n", command);
+                break;
+            case EACCES:
+                printf("Microshell: %s: access denied\n", command);
+                break;
+        }
+        return;
+    }
+    
+    if(options != NULL) {
+        int _argc = 0;
+        char *_options = strdup(options);
+        char *tmp = strtok(_options, " ");
+        while (tmp != NULL) {
+            _argc += 1;
+            tmp = strtok(NULL, " ");
+        }
+        
+        _argv = (char**)malloc((_argc + 1) * sizeof(char*));
+        free(_options);
+        _options = strdup(options);
+        *_argv = strdup(filePath);
+        tmp = strtok(_options, " ");
+        int counter = 1;
+        while (tmp != NULL) {
+            *(_argv + counter) = strdup(tmp);
+            counter += 1;
+            tmp = strtok(NULL, " ");
+        }
+        *(_argv + counter) = NULL;
+        free(_options);
+    }
+    pid_t tempProcess = fork();
+    switch (tempProcess) {
+        case -1: {
+            printf("Microshell: %s: operation cannot be performed\n", command);
+        } exit(EXIT_FAILURE);
+        case 0: {
+            execv(filePath, _argv);
+            printf("Microshell: %s: operation cannot be performed\n", command);
+        } exit(EXIT_FAILURE);
+        default: break;
+    }
 }

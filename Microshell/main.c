@@ -28,6 +28,7 @@ int main(int argc, const char * argv[]) {
         
         char *command = NULL;
         char *options = NULL;
+        bool finded = false;
         command = strtok(newstr, " ");
         if(command == NULL) {
             command = newstr;
@@ -35,13 +36,38 @@ int main(int argc, const char * argv[]) {
             options = strtok(NULL, "\n");
         }
         
-        if(!strcmp(command, "cd") || !strcmp(command, "cd\n")) {
+        if(*(command + strlen(command) - 1) == '\n')
+            *(command + strlen(command) - 1) = '\0';
+
+        if(!strcmp(command, "cd")) {
             cd(options);
+            finded = true;
         }
         
-        if(!strcmp(command, "ls") || !strcmp(command, "ls\n")) {
+        if(!strcmp(command, "ls")) {
             ls(options);
+            finded = true;
         }
+
+        if(!strcmp(command, "pwd")) {
+            pwd(options);
+            finded = true;
+        }
+        
+        if(!strcmp(command, "help")) {
+            help();
+            finded = true;
+        }
+        
+        if(!strcmp(command, "exit")) {
+            free(newstr);
+            myExit();
+        }
+        
+        if (!finded) {
+            otherCommand(command, options);
+        }
+        
         
         free(newstr);
         
